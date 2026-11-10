@@ -1,17 +1,16 @@
 # bb-plugins
 
-My bb setup: the plugins I use every day, plus a one-command installer for anyone
-who wants the same.
+My bb setup: the plugins I use every day, and instructions any agent can follow
+to give someone the same setup.
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/lukehowlett97/bb-plugins/main/setup.py | python3 -
-```
+**To get it, ask your Claude (in a bb thread):**
 
-It installs the plugins below that you don't have yet, plus Focus Board and
-Gen UI, sets Claude Code as your default provider if you haven't picked one, and
-writes a starter `~/.bb/AGENTS.md` if you have none. **It only adds; nothing you
-already have is changed.** Append ` - --dry-run` to see the plan first. Safe to
-re-run.
+> Set up my bb like Luke's: follow https://raw.githubusercontent.com/lukehowlett97/bb-plugins/main/SETUP.md
+
+It shows you the plan, asks once, installs the plugins you don't have yet (these
+four plus Focus Board and Gen UI), and writes a starter `~/.bb/AGENTS.md` if you
+have none. **It only adds; nothing you already have is changed.** Ask again later
+to pick up anything new.
 
 ## The plugins in this repo
 
@@ -41,5 +40,3 @@ cd plugins/<name>
 npm install
 bb plugin install path:$PWD   # once; then edit and `bb plugin reload <name>`
 ```
-
-Tests for the installer: `python3 -m pytest tests`.
