@@ -1,0 +1,11 @@
+{
+  "$schema": "https://getbb.app/schemas/plugins.schema.json",
+  "schemaVersion": 1,
+  "name": "lukehowlett97-bb-plugins",
+  "plugins": [
+    { "name": "prompt-pin", "source": "./plugins/prompt-pin" },
+    { "name": "thread-days", "source": "./plugins/thread-days" },
+    { "name": "thread-dots", "source": "./plugins/thread-dots" },
+    { "name": "usage-rail", "source": "./plugins/usage-rail" }
+  ]
+}
