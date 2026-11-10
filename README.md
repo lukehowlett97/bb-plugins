@@ -28,7 +28,6 @@ Each one is an ordinary plugin directory under `plugins/`, indexed by
 ## Install just one
 
 
-
 ```bash
 bb plugin install git:github.com/lukehowlett97/bb-plugins@main --plugin thread-dots
 ```
