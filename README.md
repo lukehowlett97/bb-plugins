@@ -23,7 +23,7 @@ Each one is an ordinary plugin directory under `plugins/`, indexed by
 | `thread-days` | Shows the newest 10 threads in the sidebar with a See more toggle, and a dated divider where each earlier day starts. |
 | `thread-dots` | Coloured dots instead of spinners in the thread list: unopened, working, cache hot, cache cold. |
 | `usage-rail` | A Usage icon on the navigation rail: hover for Claude Code and Codex limits, click for the full page. |
-| `workstreams-home` | A Workstreams section on the home page: one card per workstream note (frontmatter `group:`) with its Now status and what it's waiting on. Click a card to start a thread that picks it up. Notes folder is a setting (default `~/Work/Notes/projects`). |
+| `workstreams-home` | A Workstreams section on the home page: one card per workstream note (frontmatter `group:`) with three short lines, Status, Blocker and Next, written by Claude Haiku from the Now block (cached until it changes; needs the `claude` CLI). Click a card to start a thread that picks it up. Notes folder is a setting (default `~/Work/Notes/projects`). |
 
 ## Install just one
 

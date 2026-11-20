@@ -6,12 +6,12 @@
 // until you press Enter.
 import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
-import { definePluginApp, useComposer, useRpc } from "@get-bb/plugin-sdk/app";
+import { definePluginApp, useComposer, useRealtime, useRpc } from "@get-bb/plugin-sdk/app";
 import type { rpcContract, Workstream } from "./server";
 
 const COLLAPSED = 6;
 
-type Result = { dir: string; workstreams: Workstream[]; error: string | null };
+type Result = { dir: string; workstreams: Workstream[]; pending: boolean; error: string | null };
 
 function useWorkstreams() {
   const rpc = useRpc<typeof rpcContract>();
@@ -33,6 +33,8 @@ function useWorkstreams() {
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [load]);
+  // The server says when Claude's short lines have landed.
+  useRealtime("summaries", () => load());
   return { data, failed };
 }
 
@@ -63,9 +65,10 @@ const grid: CSSProperties = {
 const card: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: 6,
+  gap: 10,
+  minHeight: 168,
   textAlign: "left",
-  padding: "10px 12px",
+  padding: "14px 14px 12px",
   borderRadius: "var(--radius, 8px)",
   border: "1px solid var(--border)",
   background: "var(--card, transparent)",
@@ -75,29 +78,44 @@ const card: CSSProperties = {
   minWidth: 0,
 };
 
-const clamp = (lines: number): CSSProperties => ({
-  display: "-webkit-box",
-  WebkitLineClamp: lines,
-  WebkitBoxOrient: "vertical",
-  overflow: "hidden",
-  margin: 0,
-  fontSize: 12.5,
-  lineHeight: 1.4,
-});
-
 const muted: CSSProperties = { color: "var(--muted-foreground)" };
+
+const LINES: { key: "status" | "blocker" | "next"; label: string; dot: string }[] = [
+  { key: "status", label: "Status", dot: "var(--muted-foreground)" },
+  { key: "blocker", label: "Blocker", dot: "#e5a13a" },
+  { key: "next", label: "Next", dot: "var(--primary, #22c55e)" },
+];
+
+function Line({ label, dot, text }: { label: string; dot: string; text: string | null }) {
+  return (
+    <li style={{ display: "grid", gridTemplateColumns: "8px 54px 1fr", alignItems: "baseline", gap: 6, minWidth: 0 }}>
+      <span style={{ width: 6, height: 6, borderRadius: 3, background: text ? dot : "var(--border)", transform: "translateY(-1px)" }} />
+      <span style={{ ...muted, fontSize: 11, textTransform: "uppercase", letterSpacing: ".04em" }}>{label}</span>
+      <span
+        style={{
+          fontSize: 13,
+          lineHeight: 1.35,
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+          ...(text ? {} : muted),
+        }}
+      >
+        {text ?? "—"}
+      </span>
+    </li>
+  );
+}
 
 function Card({ ws }: { ws: Workstream }) {
   const composer = useComposer();
   const [hover, setHover] = useState(false);
   const when = shortDate(ws.updated);
-  const tip = [ws.status && `Status: ${ws.status}`, ws.waiting && `Waiting on: ${ws.waiting}`, ws.next && `Next: ${ws.next}`]
-    .filter(Boolean)
-    .join("\n\n");
   return (
     <button
       type="button"
-      title={tip || undefined}
+      title={ws.full || undefined}
       style={{ ...card, background: hover ? "var(--accent, var(--muted))" : card.background }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -107,22 +125,16 @@ function Card({ ws }: { ws: Workstream }) {
       }}
     >
       <div style={{ display: "flex", alignItems: "baseline", gap: 8, minWidth: 0 }}>
-        <strong style={{ fontSize: 13.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+        <strong style={{ fontSize: 14.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
           {ws.group}
         </strong>
         {when ? <span style={{ ...muted, fontSize: 11.5, flexShrink: 0 }}>{when}</span> : null}
       </div>
-      {ws.status ? (
-        <p style={clamp(3)}>{ws.status}</p>
-      ) : (
-        <p style={{ ...clamp(1), ...muted }}>No Now block yet.</p>
-      )}
-      {ws.waiting ? (
-        <p style={{ ...clamp(2), ...muted }}>
-          <span style={{ fontWeight: 600 }}>Waiting on: </span>
-          {ws.waiting}
-        </p>
-      ) : null}
+      <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+        {LINES.map((l) => (
+          <Line key={l.key} label={l.label} dot={l.dot} text={ws[l.key]} />
+        ))}
+      </ul>
     </button>
   );
 }
