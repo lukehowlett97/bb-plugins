@@ -6,6 +6,7 @@
     { "name": "prompt-pin", "source": "./plugins/prompt-pin" },
     { "name": "thread-days", "source": "./plugins/thread-days" },
     { "name": "thread-dots", "source": "./plugins/thread-dots" },
-    { "name": "usage-rail", "source": "./plugins/usage-rail" }
+    { "name": "usage-rail", "source": "./plugins/usage-rail" },
+    { "name": "workstreams-home", "source": "./plugins/workstreams-home" }
   ]
 }
