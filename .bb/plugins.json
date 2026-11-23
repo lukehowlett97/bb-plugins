@@ -7,6 +7,7 @@
     { "name": "thread-days", "source": "./plugins/thread-days" },
     { "name": "thread-dots", "source": "./plugins/thread-dots" },
     { "name": "usage-rail", "source": "./plugins/usage-rail" },
-    { "name": "workstreams-home", "source": "./plugins/workstreams-home" }
+    { "name": "workstreams-home", "source": "./plugins/workstreams-home" },
+    { "name": "voice-keys", "source": "./plugins/voice-keys" }
   ]
 }
