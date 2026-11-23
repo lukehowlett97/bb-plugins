@@ -4,8 +4,8 @@
 // first, showing the Now block's Status and Waiting on. Clicking a card puts a
 // "pick up this workstream" prompt in the new-thread composer; nothing is sent
 // until you press Enter.
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { CSSProperties } from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { definePluginApp, useComposer, useRealtime, useRpc } from "@get-bb/plugin-sdk/app";
 import type { rpcContract, Workstream } from "./server";
 
@@ -55,29 +55,29 @@ function prompt(ws: Workstream): string {
   return `Pick up the "${ws.group}" workstream. Read the Now block in ${ws.path} first, then carry on from its Next line.`;
 }
 
-// One row that scrolls sideways. Its height is fixed, loaded or not, so the
-// composer above never moves.
-const ROW_HEIGHT = 176;
-const CARD_WIDTH = 236;
+// Three columns, two rows visible (six cards); the rest scroll inside the box.
+// The box's height is fixed, loaded or not, so the composer above never moves.
+const CARD_HEIGHT = 168;
+const GAP = 10;
+const BOX_HEIGHT = CARD_HEIGHT * 2 + GAP;
 
-const row: CSSProperties = {
-  display: "flex",
-  gap: 10,
-  height: ROW_HEIGHT,
-  overflowX: "auto",
-  overflowY: "hidden",
-  scrollSnapType: "x proximity",
+const box: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+  gridAutoRows: CARD_HEIGHT,
+  gap: GAP,
+  height: BOX_HEIGHT,
+  overflowY: "auto",
+  overscrollBehaviorY: "contain",
+  scrollSnapType: "y proximity",
   scrollbarWidth: "thin",
-  overscrollBehaviorX: "contain",
-  paddingBottom: 6,
+  paddingRight: 2,
 };
 
 const card: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: 10,
-  flex: `0 0 ${CARD_WIDTH}px`,
-  height: ROW_HEIGHT - 8,
   scrollSnapAlign: "start",
   textAlign: "left",
   padding: "14px 14px 12px",
@@ -151,73 +151,12 @@ function Card({ ws }: { ws: Workstream }) {
   );
 }
 
-function Notice({ children }: { children: React.ReactNode }) {
-  return <p style={{ ...muted, fontSize: 13, height: ROW_HEIGHT, margin: 0 }}>{children}</p>;
-}
-
-function Arrow({ dir, onClick }: { dir: -1 | 1; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      aria-label={dir < 0 ? "Scroll left" : "Scroll right"}
-      onClick={onClick}
-      style={{
-        position: "absolute",
-        top: (ROW_HEIGHT - 8) / 2 - 14,
-        [dir < 0 ? "left" : "right"]: -14,
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        border: "1px solid var(--border)",
-        background: "var(--popover, var(--card))",
-        color: "var(--foreground)",
-        cursor: "pointer",
-        boxShadow: "var(--shadow-md, 0 4px 12px rgba(0,0,0,.25))",
-        font: "inherit",
-        fontSize: 15,
-        lineHeight: "26px",
-        padding: 0,
-        zIndex: 1,
-      }}
-    >
-      {dir < 0 ? "‹" : "›"}
-    </button>
-  );
+function Notice({ children }: { children: ReactNode }) {
+  return <p style={{ ...muted, fontSize: 13, height: BOX_HEIGHT, margin: 0 }}>{children}</p>;
 }
 
 function WorkstreamsSection() {
   const { data, failed } = useWorkstreams();
-  const ref = useRef<HTMLDivElement>(null);
-  const [edges, setEdges] = useState({ left: false, right: false });
-
-  const measure = useCallback(() => {
-    const el = ref.current;
-    if (!el) return;
-    setEdges({ left: el.scrollLeft > 4, right: el.scrollLeft + el.clientWidth < el.scrollWidth - 4 });
-  }, []);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    measure();
-    // A vertical wheel over the row scrolls it sideways instead of the page.
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
-      if (el.scrollWidth <= el.clientWidth) return;
-      e.preventDefault();
-      el.scrollLeft += e.deltaY;
-    };
-    el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("scroll", measure, { passive: true });
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => {
-      el.removeEventListener("wheel", onWheel);
-      el.removeEventListener("scroll", measure);
-      ro.disconnect();
-    };
-  }, [measure, data]);
-
   if (failed) return <Notice>Couldn't load workstreams: {failed}</Notice>;
   if (!data) return <Notice>Loading workstreams…</Notice>;
   if (data.error) return <Notice>{data.error}</Notice>;
@@ -227,19 +166,11 @@ function WorkstreamsSection() {
         No workstream notes in {data.dir}. A note counts when its frontmatter has <code>group: "Name"</code>.
       </Notice>
     );
-  const page = (dir: -1 | 1) => {
-    const el = ref.current;
-    if (el) el.scrollBy({ left: dir * (el.clientWidth - CARD_WIDTH / 2), behavior: "smooth" });
-  };
   return (
-    <div style={{ position: "relative" }}>
-      {edges.left ? <Arrow dir={-1} onClick={() => page(-1)} /> : null}
-      <div ref={ref} style={row}>
-        {data.workstreams.map((ws) => (
-          <Card key={ws.path} ws={ws} />
-        ))}
-      </div>
-      {edges.right ? <Arrow dir={1} onClick={() => page(1)} /> : null}
+    <div style={box}>
+      {data.workstreams.map((ws) => (
+        <Card key={ws.path} ws={ws} />
+      ))}
     </div>
   );
 }
