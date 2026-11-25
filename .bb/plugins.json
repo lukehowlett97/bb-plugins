@@ -8,6 +8,7 @@
     { "name": "thread-dots", "source": "./plugins/thread-dots" },
     { "name": "usage-rail", "source": "./plugins/usage-rail" },
     { "name": "workstreams-home", "source": "./plugins/workstreams-home" },
-    { "name": "voice-keys", "source": "./plugins/voice-keys" }
+    { "name": "voice-keys", "source": "./plugins/voice-keys" },
+    { "name": "bb-setups", "source": "./plugins/bb-setups" }
   ]
 }

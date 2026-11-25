@@ -25,6 +25,7 @@ Each one is an ordinary plugin directory under `plugins/`, indexed by
 | `usage-rail` | A Usage icon on the navigation rail: hover for Claude Code and Codex limits, click for the full page. |
 | `workstreams-home` | A Workstreams section on the home page: one card per workstream note (frontmatter `group:`) with three short lines, Status, Blocker and Next, written by Claude Haiku from the Now block (cached until it changes; needs the `claude` CLI). Click a card to start a thread that picks it up. Notes folder is a setting (default `~/Work/Notes/projects`). |
 | `voice-keys` | Keys for voice input: while dictating, **Enter** sends it and **Space** stops and adds it to the draft. |
+| `bb-setups` | A **Themes** page on the rail: every theme you have as a light and dark swatch, one click to switch, and the team's themes from the bb setups Drop page with **Install and use** (reads Drop with your own key from `~/.measure/drop.env`). Also gives that page's **open in bb** buttons somewhere to land: they start a thread that shares or installs a theme, skill, AGENTS.md section or plugin, asking you first. |
 
 ## Install just one
 
