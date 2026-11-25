@@ -22,9 +22,9 @@ import { z } from "zod";
 const SLUG = "bb-setups";
 const PAGE = "https://drop.measureprotocol.com/i/bb-setups/";
 const RUN = "drop get bb-setups --path bbsetups.py | python3 -";
-const KINDS = ["theme", "skill", "agents", "plugin"] as const;
+const KINDS = ["theme", "skill", "agents", "plugin", "scene"] as const;
 type Kind = (typeof KINDS)[number];
-const ID_RE = /^(theme|skill|agents|plugin)~[a-z0-9._-]{1,64}~[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+const ID_RE = /^(theme|skill|agents|plugin|scene)~[a-z0-9._-]{1,64}~[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 const NAME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 
 const TeamTheme = z.object({
@@ -64,6 +64,8 @@ function sharePrompt(kind: Kind): string {
       return `Share one of my bb skills on the team's bb setups page (${PAGE}).\n1. List the folders in ~/.bb/skills and ask me which skill to share.\n2. Show me its SKILL.md and point out anything personal (home-folder paths, client or internal names, my own repos).\n${tail("share skill <folder-name>")}`;
     case "agents":
       return `Share a section of my bb AGENTS.md on the team's bb setups page (${PAGE}).\n1. List the headings in ~/.bb/AGENTS.md and ask me which section to share.\n2. Write just that section to a temporary file, show it to me, and point out anything personal or specific to my machine.\n${tail('share agents --title "<a short title>" --file <that file> --description "<one line>"')}`;
+    case "scene":
+      return `Share one of my Ambient scenes on the team's bb setups page (${PAGE}).\n1. Run \`bb ambient list\` and ask me which saved scene to share.\n2. Run \`bb ambient load <that scene>\`, then use the ambient tool with action=get and write the scene's name, source, params and palette to a temporary JSON file as {"name", "source", "params", "palette"}. Tell me its name, its four colours and how many sliders it has.\n${tail('share scene --file <that file> --title "<the scene name>"')}`;
     case "plugin":
       return `Share one of my bb plugins on the team's bb setups page (${PAGE}).\n1. Run \`bb plugin list --json\` and ask me which plugin to share.\n2. Find where it installs from (a git: or npm: source; a local path won't work for anyone else) and suggest a one-line description.\n${tail('share plugin --title "<plugin name>" --source <source> --description "<the line I approved>"')}`;
   }
@@ -73,6 +75,9 @@ function installPrompt(id: string): string {
   const kind = id.split("~")[0] as Kind;
   const get =
     kind === "agents" ? `get ${id} --append` : kind === "plugin" ? `get ${id}` : `get ${id}`;
+  if (kind === "scene") {
+    return `Install the Ambient scene "${id}" from the team's bb setups page (${PAGE}).\n1. Check the Ambient plugin is installed (\`bb plugin list\`). If it isn't, tell me it's needed and stop: I can add it from bb's plugin store.\n2. Run \`${RUN} show ${id}\` and tell me in two or three lines what the scene is, who shared it, and its colours.\n3. When I say yes, run \`${RUN} get ${id}\` to print scene.json, then use the ambient tool: action=set with its name, source, params and palette, action=look to check it reads well behind bb, then action=save with the same name.\n4. Tell me how to switch back to my previous scene (\`bb ambient load <name>\`).`;
+  }
   const after =
     kind === "theme"
       ? "Then tell me to hover it in Settings, Appearance to preview it, or switch to it from the Themes page on the rail."
@@ -201,7 +206,7 @@ export default function plugin(bb: BbPluginApi) {
     const kind = new URL(c.req.url).searchParams.get("kind") ?? "theme";
     if (!(KINDS as readonly string[]).includes(kind)) return page("Nothing to share", "That link asked for something bb setups doesn't know.", false);
     try {
-      await startThread(bb, sharePrompt(kind as Kind), `Share a ${kind === "agents" ? "AGENTS.md section" : kind} on bb setups`);
+      await startThread(bb, sharePrompt(kind as Kind), `Share ${kind === "agents" ? "an AGENTS.md section" : kind === "scene" ? "an Ambient scene" : `a ${kind}`} on bb setups`);
       return page("Opened in bb", "A thread is asking which one to share. You can close this tab.", true);
     } catch (e) {
       return page("Couldn't open bb", e instanceof Error ? e.message : String(e), false);
