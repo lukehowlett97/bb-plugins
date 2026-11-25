@@ -3,9 +3,12 @@
 // 1. HTTP routes the Drop page's "open in bb" buttons link to:
 //      GET /api/v1/plugins/bb-setups/http/share?kind=theme|skill|agents|plugin
 //      GET /api/v1/plugins/bb-setups/http/install?id=<kind~who~name>
-//    Each starts a thread in the personal project with a FIXED prompt and opens
-//    it. The link only chooses which fixed prompt; it never carries free text,
-//    so another website can at most open a thread that asks you a question.
+//      GET /api/v1/plugins/bb-setups/http/add?id=theme~who~name[&use=1]
+//    share and install start a thread in the personal project with a FIXED
+//    prompt and open it. The link only chooses which fixed prompt; it never
+//    carries free text, so another website can at most open a thread that asks
+//    you a question. add writes a theme that is already on the team's page
+//    straight into ~/.bb/theme (CSS only, no thread), and switches with use=1.
 // 2. RPC for the Themes page: the team's themes from Drop, and installing one.
 //    Drop is read with the user's own key from ~/.measure/drop.env.
 import { spawn } from "node:child_process";
@@ -146,6 +149,39 @@ async function startThread(bb: BbPluginApi, prompt: string, title: string): Prom
   return thread.id;
 }
 
+async function installTeamTheme(bb: BbPluginApi, id: string): Promise<{ name: string; already: boolean }> {
+  if (!ID_RE.test(id) || !id.startsWith("theme~")) throw new Error("Not a theme id.");
+  const row = (await entries()).find((r) => r.key === id);
+  if (!row?.value) throw new Error(`${id} isn't on the bb setups page any more.`);
+  const files = Object.entries((row.value.files ?? {}) as Record<string, unknown>).filter(
+    ([p, t]) => typeof t === "string" && /^[A-Za-z0-9._-]+\.(css|json)$/.test(p),
+  ) as Array<[string, string]>;
+  if (!files.some(([p]) => p === "theme.css")) throw new Error("That entry has no theme.css.");
+  const dir = (await bb.sdk.theme.catalog()).dir;
+  const base = str(row.value.name);
+  if (!NAME_RE.test(base)) throw new Error("That theme's name can't be a folder name.");
+  const same = async (d: string) => {
+    try {
+      for (const [p, t] of files) if ((await readFile(join(d, p), "utf8")) !== t) return false;
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  let name = base;
+  if (existsSync(join(dir, name)) && !(await same(join(dir, name)))) name = `${base}-${id.split("~")[1]}`;
+  const dest = join(dir, name);
+  if (existsSync(dest) && (await same(dest))) return { name, already: true };
+  if (existsSync(dest)) throw new Error(`You already have a different theme called ${name}.`);
+  await mkdir(dest, { recursive: true });
+  for (const [p, t] of files) {
+    const target = resolve(dest, p);
+    if (!target.startsWith(resolve(dest) + sep)) throw new Error("Bad file path in that theme.");
+    await writeFile(target, t);
+  }
+  return { name, already: false };
+}
+
 function page(title: string, body: string, ok: boolean): Response {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>
 <style>:root{color-scheme:light dark;--bg:#f6f4fb;--ink:#1e1b26;--muted:#6a6578;--accent:#5b3fd6}
@@ -183,6 +219,26 @@ export default function plugin(bb: BbPluginApi) {
     }
   });
 
+  // Direct add, no thread: themes only, because a theme is just CSS and the
+  // id must name an entry already on the team's page. ?use=1 also switches to it.
+  bb.http.route("GET", "/add", async (c) => {
+    const q = new URL(c.req.url).searchParams;
+    const id = q.get("id") ?? "";
+    if (!ID_RE.test(id) || !id.startsWith("theme~")) return page("Nothing to add", "That link didn't name a theme on the bb setups page.", false);
+    try {
+      const { name, already } = await installTeamTheme(bb, id);
+      const use = q.get("use") === "1";
+      if (use) await bb.sdk.theme.set(name);
+      const title = use ? `Switched to ${name}` : already ? `${name} is already in your bb` : `Added ${name} to your bb`;
+      const body = use
+        ? "bb is using it now. You can close this tab."
+        : "Switch to it from the Themes page on bb's rail, or hover it in Settings, Appearance to preview it. You can close this tab.";
+      return page(title, body, true);
+    } catch (e) {
+      return page("Couldn't add it", e instanceof Error ? e.message : String(e), false);
+    }
+  });
+
   bb.rpc.register(rpcContract, {
     async teamThemes() {
       try {
@@ -210,36 +266,7 @@ export default function plugin(bb: BbPluginApi) {
     },
 
     async installTheme({ id }) {
-      if (!ID_RE.test(id) || !id.startsWith("theme~")) throw new Error("Not a theme id.");
-      const row = (await entries()).find((r) => r.key === id);
-      if (!row?.value) throw new Error(`${id} isn't on the bb setups page any more.`);
-      const files = Object.entries((row.value.files ?? {}) as Record<string, unknown>).filter(
-        ([p, t]) => typeof t === "string" && /^[A-Za-z0-9._-]+\.(css|json)$/.test(p),
-      ) as Array<[string, string]>;
-      if (!files.some(([p]) => p === "theme.css")) throw new Error("That entry has no theme.css.");
-      const dir = (await bb.sdk.theme.catalog()).dir;
-      const base = str(row.value.name);
-      if (!NAME_RE.test(base)) throw new Error("That theme's name can't be a folder name.");
-      const same = async (d: string) => {
-        try {
-          for (const [p, t] of files) if ((await readFile(join(d, p), "utf8")) !== t) return false;
-          return true;
-        } catch {
-          return false;
-        }
-      };
-      let name = base;
-      if (existsSync(join(dir, name)) && !(await same(join(dir, name)))) name = `${base}-${id.split("~")[1]}`;
-      const dest = join(dir, name);
-      if (existsSync(dest) && (await same(dest))) return { name, already: true };
-      if (existsSync(dest)) throw new Error(`You already have a different theme called ${name}.`);
-      await mkdir(dest, { recursive: true });
-      for (const [p, t] of files) {
-        const target = resolve(dest, p);
-        if (!target.startsWith(resolve(dest) + sep)) throw new Error("Bad file path in that theme.");
-        await writeFile(target, t);
-      }
-      return { name, already: false };
+      return installTeamTheme(bb, id);
     },
 
     async startShare({ kind }) {
