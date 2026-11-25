@@ -1,0 +1,171 @@
+{
+  "$schema": "https://getbb.app/schemas/marketplace.schema.json",
+  "schemaVersion": 1,
+  "name": "lukehowlett97-bb-plugins",
+  "displayName": "Luke's bb plugins",
+  "description": "Plugins Luke uses every day, shared with the Measure team: a theme picker, usage on the rail, workstreams on the home page, and thread-list tweaks.",
+  "plugins": [
+    {
+      "id": "prompt-pin",
+      "displayName": "Prompt Pin",
+      "description": "Pins your most recent prompt in a bubble at the top of the thread while you scroll through the reply.",
+      "tags": [
+        "threads",
+        "reading"
+      ],
+      "author": {
+        "name": "Luke Howlett",
+        "github": "lukehowlett97"
+      },
+      "source": {
+        "git": {
+          "url": "https://github.com/lukehowlett97/bb-plugins.git",
+          "subdir": "plugins/prompt-pin",
+          "ref": "main"
+        }
+      },
+      "icon": {
+        "url": "./icons/prompt-pin.svg"
+      }
+    },
+    {
+      "id": "thread-days",
+      "displayName": "Thread Days",
+      "description": "Shows the newest 10 threads in the sidebar with a See more toggle, and a dated divider where each earlier day starts.",
+      "tags": [
+        "sidebar",
+        "threads"
+      ],
+      "author": {
+        "name": "Luke Howlett",
+        "github": "lukehowlett97"
+      },
+      "source": {
+        "git": {
+          "url": "https://github.com/lukehowlett97/bb-plugins.git",
+          "subdir": "plugins/thread-days",
+          "ref": "main"
+        }
+      },
+      "icon": {
+        "url": "./icons/thread-days.svg"
+      }
+    },
+    {
+      "id": "thread-dots",
+      "displayName": "Thread Dots",
+      "description": "Coloured dots instead of spinners in the thread list: unopened, working, cache hot, cache cold.",
+      "tags": [
+        "sidebar",
+        "status"
+      ],
+      "author": {
+        "name": "Luke Howlett",
+        "github": "lukehowlett97"
+      },
+      "source": {
+        "git": {
+          "url": "https://github.com/lukehowlett97/bb-plugins.git",
+          "subdir": "plugins/thread-dots",
+          "ref": "main"
+        }
+      },
+      "icon": {
+        "url": "./icons/thread-dots.svg"
+      }
+    },
+    {
+      "id": "usage-rail",
+      "displayName": "Usage Rail",
+      "description": "A Usage icon on the navigation rail: hover for Claude Code and Codex limits, click for the full page.",
+      "tags": [
+        "usage",
+        "limits"
+      ],
+      "author": {
+        "name": "Luke Howlett",
+        "github": "lukehowlett97"
+      },
+      "source": {
+        "git": {
+          "url": "https://github.com/lukehowlett97/bb-plugins.git",
+          "subdir": "plugins/usage-rail",
+          "ref": "main"
+        }
+      },
+      "icon": {
+        "url": "./icons/usage-rail.svg"
+      }
+    },
+    {
+      "id": "workstreams-home",
+      "displayName": "Workstreams Home",
+      "description": "A Workstreams section on bb's home page: one card per workstream with its current status, from the Now block in each project note. Click a card to start a thread that picks it up.",
+      "tags": [
+        "home",
+        "workstreams"
+      ],
+      "author": {
+        "name": "Luke Howlett",
+        "github": "lukehowlett97"
+      },
+      "source": {
+        "git": {
+          "url": "https://github.com/lukehowlett97/bb-plugins.git",
+          "subdir": "plugins/workstreams-home",
+          "ref": "main"
+        }
+      },
+      "icon": {
+        "url": "./icons/workstreams-home.svg"
+      }
+    },
+    {
+      "id": "voice-keys",
+      "displayName": "Voice Keys",
+      "description": "Keyboard keys for voice input: while dictating, Enter sends it and Space stops and adds it to the draft.",
+      "tags": [
+        "voice",
+        "keyboard"
+      ],
+      "author": {
+        "name": "Luke Howlett",
+        "github": "lukehowlett97"
+      },
+      "source": {
+        "git": {
+          "url": "https://github.com/lukehowlett97/bb-plugins.git",
+          "subdir": "plugins/voice-keys",
+          "ref": "main"
+        }
+      },
+      "icon": {
+        "url": "./icons/voice-keys.svg"
+      }
+    },
+    {
+      "id": "bb-setups",
+      "displayName": "bb setups",
+      "description": "A Themes page on the rail: switch between your themes in one click and install the team's from the bb setups page on Drop. Also lets that page's 'open in bb' buttons start a share or install thread.",
+      "tags": [
+        "themes",
+        "appearance",
+        "team"
+      ],
+      "author": {
+        "name": "Luke Howlett",
+        "github": "lukehowlett97"
+      },
+      "source": {
+        "git": {
+          "url": "https://github.com/lukehowlett97/bb-plugins.git",
+          "subdir": "plugins/bb-setups",
+          "ref": "main"
+        }
+      },
+      "icon": {
+        "url": "./icons/bb-setups.svg"
+      }
+    }
+  ]
+}
