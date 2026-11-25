@@ -56,7 +56,7 @@ export const rpcContract = defineRpcContract({
 // ---------------------------------------------------------------------- prompts
 function sharePrompt(kind: Kind): string {
   const tail = (cmd: string) =>
-    `3. When I say yes, run:\n   ${RUN} ${cmd}\n4. Give me the link it prints. If it refuses because something looks like a key or password, tell me which line and stop.`;
+    `3. Ask me what else it relies on (plugins, settings, an Ambient scene), and for a screenshot of how it looks in my bb (a file path, or skip).\n4. When I say yes, run:\n   ${RUN} ${cmd} --needs "<what I said, or leave this flag out>" --shot <the screenshot path, or leave this flag out>\n5. Give me the link it prints. If it refuses because something looks like a key or password, tell me which line and stop.`;
   switch (kind) {
     case "theme":
       return `Share one of my bb themes on the team's bb setups page (${PAGE}).\n1. Run \`bb theme list\` and ask me which custom theme to share.\n2. Show me its theme.css and point out anything personal (home-folder paths, client or internal names). Suggest a one-line description.\n${tail('share theme <folder-name> --description "<the line I approved>"')}`;
